@@ -2,20 +2,21 @@ package users
 
 import (
 	"strconv"
-	// "encoding/json"
-	// "fmt"
-	// "io/ioutil"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jospradlin/bookstore_users_api/domain/users"
 	"github.com/jospradlin/bookstore_users_api/services"
+	"github.com/jospradlin/bookstore_users_api/utils/headers"
 	"github.com/jospradlin/bookstore_users_api/utils/errors"
 )
 
 // CreateUser creates a User
 func CreateUser(c *gin.Context) {
 	var user users.User
+
+	// Passthrough Istio Headers for Tracing
+	headers.PassthroughIstioXHeaders(c)
 
 	if err := c.ShouldBindJSON(&user); err != nil {
 		restErr := errors.NewBadRequestError("Invalid JSON body")
@@ -33,6 +34,12 @@ func CreateUser(c *gin.Context) {
 	// 	fmt.Println(err.Error())
 	// 	return
 	// }
+	// fmt.Println(c.Request.Header)
+	// for key, element := range c.Request.Header {
+	// 	if strings.HasPrefix(key, "C") {
+	// 		fmt.Println("Key:", key, "=>", "Element:", element)
+	// 	}
+	// }
 
 	result, saveErr := services.CreateUser( user )
 	if saveErr != nil {
@@ -45,6 +52,10 @@ func CreateUser(c *gin.Context) {
 
 // GetUser gets a User
 func GetUser(c *gin.Context) {
+
+	// Passthrough Istio Headers for Tracing
+	headers.PassthroughIstioXHeaders(c)
+	
 	userID, userErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
 	if userErr != nil {
 		err := errors.NewBadRequestError("Invalid User ID")
